@@ -1,14 +1,10 @@
-fastapi==0.78.0 # certo
-uvicorn==0.17.6 #certo
-requests==2.27.1 # certo
+fastapi==0.78.0 
+uvicorn==0.17.6 
+requests==2.27.1 
 SQLAlchemy==1.4.37
 psycopg2==2.9.9
-#TESTS
-pytest==7.1.2  # cert
-
-
 anyio-4.6.0
-
-
 alembic==1.8.0
 
+#TESTS
+pytest==7.1.2 

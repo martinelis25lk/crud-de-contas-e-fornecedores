@@ -13,7 +13,7 @@ app = FastAPI()
 
 @app.get("/")
 def oi_eu_sou_programador()-> str:
-    return "oi selaljlkJDKJDKJ"
+    return "1234567890"
 
 
 app.include_router(contas_a_pagar_e_receber_router.router)
