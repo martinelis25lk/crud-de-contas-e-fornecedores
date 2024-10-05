@@ -3,10 +3,13 @@ from typing import List
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-
 from contas_a_pagar_e_receber.models.fornecedor_cliente_model import FornecedorCliente
+
 from shared.dependencies import get_db
 from shared.exceptions import NotFound
+
+
+
 
 router = APIRouter(prefix="/fornecedor-cliente")
 
@@ -31,6 +34,10 @@ def listar_fornecedor_cliente(db: Session = Depends(get_db))->  List[FornecedorC
 def obter_fornecedor_cliente_pelo_id(id_do_fornecedor_cliente: int,
                                      db: Session = Depends(get_db))-> List[FornecedorClienteResponse]:
     return busca_fornecedor_cliente_por_id(id_do_fornecedor_cliente, db)
+
+
+
+
 
 
 

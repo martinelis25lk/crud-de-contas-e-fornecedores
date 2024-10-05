@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from shared.exceptions import NotFound
 from contas_a_pagar_e_receber.routers.fornecedor_cliente_router import FornecedorClienteResponse, FornecedorCliente
 from fastapi import HTTPException
+from datetime import datetime
 
 
 
@@ -28,6 +29,9 @@ class ContaPagarReceberResponse(BaseModel):
     descricao: str
     valor:  Decimal
     tipo: str # PAGAR/RECEBER
+    data_da_baixa : datetime               | None = None  #opcional
+    valor_da_baixa : Decimal               | None = None
+    esta_baixada : bool                    | None = None
     fornecedor : FornecedorClienteResponse | None = None
  
  
@@ -78,15 +82,9 @@ def criar_conta(conta_a_pagar_e_receber_request: ContaPagarReceberRequest,
         **conta_a_pagar_e_receber_request.dict()
     )
 
-
-    
-
-
     db.add(contas_a_pagar_e_receber)
     db.commit()
     db.refresh(contas_a_pagar_e_receber)
-
-
 
     return contas_a_pagar_e_receber
 
@@ -101,8 +99,6 @@ def atualizar_conta(id_da_conta_a_pagar_e_receber: int,
                     db: Session = Depends(get_db)) -> ContaPagarReceberResponse:
     _valida_fornecedor(conta_a_pagar_e_receber_request.fornecedor_cliente_id, db)
     
-
-
     conta_a_pagar_e_receber = busca_conta_por_id(id_da_conta_a_pagar_e_receber, db)
 
     conta_a_pagar_e_receber.tipo = conta_a_pagar_e_receber_request.tipo
@@ -115,6 +111,27 @@ def atualizar_conta(id_da_conta_a_pagar_e_receber: int,
     db.commit()
     db.refresh(conta_a_pagar_e_receber)
     return conta_a_pagar_e_receber
+
+
+#ação post está geralmente relacionada a uma regra de negocio
+@router.post("/{id_da_conta_a_pagar_e_receber}/baixar", response_model=ContaPagarReceberResponse, status_code=200)
+def baixar_conta(id_da_conta_a_pagar_e_receber: int,
+                    db: Session = Depends(get_db)) -> ContaPagarReceberResponse:
+    conta_a_pagar_e_receber = busca_conta_por_id(id_da_conta_a_pagar_e_receber, db)
+
+    if conta_a_pagar_e_receber.esta_baixada and conta_a_pagar_e_receber.valor == conta_a_pagar_e_receber.valor_da_baixa:
+       return conta_a_pagar_e_receber
+    
+    conta_a_pagar_e_receber.data_da_baixa = datetime.now()
+    conta_a_pagar_e_receber.esta_baixada = True
+    conta_a_pagar_e_receber.valor_da_baixa = conta_a_pagar_e_receber.valor
+
+
+    db.add(conta_a_pagar_e_receber)
+    db.commit()
+    db.refresh(conta_a_pagar_e_receber)
+    return conta_a_pagar_e_receber
+
 
 
 

@@ -44,8 +44,11 @@ def test_deve_listar_contas_a_pagar_e_receber():
     response = client.get('/contas-a-pagar-e-receber')
     assert response.status_code == 200
     assert response.json()==[
-        {'id': 1, 'descricao': 'teste', 'valor': 1200.0, 'tipo': 'PAGAR', 'fornecedor': None},
-        {'id': 2, 'descricao': 'aaaaa', 'valor': 1500, 'tipo': 'RECEBER', 'fornecedor': None}
+        {'id': 1, 'descricao': 'teste', 'valor': 1200.0, 'tipo': 'PAGAR','fornecedor': None, 'data_da_baixa': None, 
+         'valor_da_baixa': None,'esta_baixada': False},
+
+        {'id': 2, 'descricao': 'aaaaa', 'valor': 1500, 'tipo': 'RECEBER','fornecedor': None, 'data_da_baixa': None, 
+         'valor_da_baixa': None,'esta_baixada': False}
     ]
 
 
@@ -58,6 +61,9 @@ def test_deve_criar_conta_a_pagar_e_receber():
         "valor"    : 1200,
         "tipo"     : "RECEBER",
         "fornecedor": None,
+        'data_da_baixa': None, 
+        'valor_da_baixa': None,
+        'esta_baixada': False
     }
 
     nova_conta_copy = nova_conta.copy()
@@ -85,6 +91,9 @@ def test_deve_criar_conta_a_pagar_e_receber_com_fornecedor_cliente_id():
         "valor"    : 999,
         "tipo"     : "RECEBER",
         "fornecedor_cliente_id": 1,
+        'data_da_baixa': None, 
+        'valor_da_baixa': None,
+        'esta_baixada': False
     }
 
     nova_conta_copy = nova_conta.copy()
@@ -119,6 +128,54 @@ def test_deve_retornar_erro_ao_inserir_nova_conta_com_fornecedor_invalido():
     response = client.post("/contas-a-pagar-e-receber", json=nova_conta)
    
     assert response.status_code == 422
+
+
+def test_deve_baixar_conta():
+    Base.metadata.drop_all(bind = engine)
+    Base.metadata.create_all(bind = engine)
+
+    
+    client.post("/contas-a-pagar-e-receber", json={
+        "descricao": "curso de python",
+        "valor": 333,
+        "tipo": "PAGAR"
+    })
+
+    response_acao = client.post(f"/contas-a-pagar-e-receber/1/baixar")
+   
+    assert response_acao.status_code == 200
+    assert response_acao.json()['esta_baixada'] is True
+    assert response_acao.json()['valor']== 333
+
+
+def test_deve_baixar_conta_modificada():
+    Base.metadata.drop_all(bind = engine)
+    Base.metadata.create_all(bind = engine)
+
+    
+    client.post("/contas-a-pagar-e-receber", json={
+        "descricao": "curso de python",
+        "valor": 333,
+        "tipo": "PAGAR"
+    })
+
+
+    client.post(f"/contas-a-pagar-e-receber/1/baixar")
+
+
+    client.put(f"/contas-a-pagar-e-receber/1", json={
+        "descricao":"Curso de python",
+        "valor": 444,
+        "tipo": "PAGAR"
+    })
+
+    response_acao = client.post(f"/contas-a-pagar-e-receber/1/baixar")
+   
+    assert response_acao.status_code == 200
+    assert response_acao.json()['esta_baixada'] is True
+    assert response_acao.json()['valor'] == 444
+    assert response_acao.json()['valor_da_baixa'] == 444
+   
    
 
 
